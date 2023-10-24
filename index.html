@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <meta http-equiv="Content-Security-Policy" content="default-src *; connect-src *; script-src 'self' 'unsafe-eval'">
+    <title>Scan</title>
+    <link rel="shortcut icon" href="./favicon.png" />
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="./public/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="./public/css/style.css" />
+  </head>
+  <body class="body-scanner">
+    <div class="container-fluid">
+      <div class="row">
+        <div id="vApp" v-cloak v-bind:data-pending="pending" v-on:click.prevent="focus" class="col-12 scanner-kiosk">
+            <div v-if="!duplicate" class="form-row pt-md-5 pt-3">
+                <div class="col-md-2 col-xlx-4"></div>
+                <div class="col-md-8 col-xlx-4">
+                    <div class="form-row">
+                        <div class="col-md-12">
+                            <div class="d-flex align-items-center pl-md-3 header mb-md-3">
+                                <h1 class="h5 mb-0 text-left text-md-center title">Human Resource Information System (HRIS)</h1>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="carousel-scan" class="carousel-scan carousel slide pb-5" data-ride="carousel" data-touch="false" data-interval="false">
+                        <ol class="carousel-indicators">
+                            <li data-target="#carousel-scan" data-slide-to="0" class="active"></li>
+                            <li data-target="#carousel-scan" data-slide-to="1"></li>
+                            <li data-target="#carousel-scan" data-slide-to="2"></li>
+                        </ol>
+                        <div class="carousel-inner p-3">
+                            <!-- 0 -->
+                            <div class="carousel-item active">
+                                <div class="form-row">
+                                    <div class="col-md-7">
+                                        <div class="scanner-calendar">
+                                            <div class="time pt-md-5 pb-md-4"><span>${clock}</span></div>
+                                            <div class="date mb-2"><span>${date}</span></div>
+                                            <div class="d-flex align-items-center justify-content-center flex-wrap weekDays">
+                                                <div v-for="day in weekDays" class="weekDay" v-bind:data-today="day.isToday">${day.weekDay} <br>${day.day}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <div class="wall-clock">
+                                            <div class="arm-second"></div>
+                                            <div class="arm-minute"></div>
+                                            <div class="arm-hour"></div>
+                                            <div class="hour hour-12">12</div>
+                                            <div class="hour hour-1">1</div>
+                                            <div class="hour hour-2">2</div>
+                                            <div class="hour hour-3">3</div>
+                                            <div class="hour hour-4">4</div>
+                                            <div class="hour hour-5">5</div>
+                                            <div class="hour hour-6">6</div>
+                                            <div class="hour hour-7">7</div>
+                                            <div class="hour hour-8">8</div>
+                                            <div class="hour hour-9">9</div>
+                                            <div class="hour hour-10">10</div>
+                                            <div class="hour hour-11">11</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- 1 -->
+                            <div class="carousel-item">
+                                <div class="form-row">
+                                    <div class="col-md-9">
+                                        <table class="table table-sm text-center table-borderless table-scanner-logs mb-3 mt-md-5 mt-3">
+                                            <tr>
+                                                <th width="25%">In</th>
+                                                <th width="25%">Out</th>
+                                                <th width="25%">In</th>
+                                                <th width="25%">Out</th>
+                                            </tr>
+                                            <tr>
+                                                <td><span v-bind:class="(logIndex===1) ? 'fx-pop current' : '' ">${log0}</span></td>
+                                                <td><span v-bind:class="(logIndex===2) ? 'fx-pop current' : '' ">${log1}</span></td>
+                                                <td><span v-bind:class="(logIndex===3) ? 'fx-pop current' : '' ">${log2}</span></td>
+                                                <td><span v-bind:class="(logIndex===4) ? 'fx-pop current' : '' ">${log3}</span></td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                    <div class="col-md-3 text-center">
+                                        <div v-if="profilePhoto" class="profile">
+                                            <img class="img-fluid" width="200" height="200" v-bind:src="profilePhoto" alt="Photo">
+                                        </div>
+                                        <div class="employee-name">${name}</div>
+                                        <div class="alert alert-info">Returning to scanner in ${returnCountdown}...</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- 2 -->
+                            <div class="carousel-item">
+                                <div class="text-center">
+                                    <h1>Error</h1>
+                                    <div class="alert alert-danger">${error}</div>
+                                    <div class="alert alert-warning">Returning to scanner in ${returnCountdown} second(s).</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2 col-xlx-4"></div>       
+            </div>
+            <form v-if="!duplicate" ref="form" class="position-relative text-center" v-on:submit.prevent="onSubmit" action="" method="POST" novalidate>
+                <!-- <div class="code-cover"></div> -->
+                <input v-on:blur="focus" v-model="code" name="code" id="code" type="text" autocomplete="off">
+            </form>
+            <div class="dot-main"><div class="dot" :data-status="status"></div> <div>${status}</div></div>
+            
+        </div>
+      </div>
+    </div>
+  <script src="./public/js/lodash.min.js"></script>
+  <script src="./public/js/anime.min.js"></script>
+  <script src="./public/js/dexie.min.js"></script>
+  <script src="./public/js/vue.min.js"></script>
+  <!-- <script src="./public/js/vuelidate.min.js"></script> -->
+  <!-- <script src="./public/js/validators.min.js"></script> -->
+  <!-- <script src="./public/js/vuelidate-extend.js"></script> -->
+  <script src="./public/js/jquery.min.js"></script>
+  <script src="./public/js/popper.min.js"></script>
+  <script src="./public/js/bootstrap.min.js"></script>
+  <script src="./public/js/moment.min.js"></script>
+  <script src="./public/js/moment-timezone-with-data-10-year-range.min.js"></script>
+  <!-- <script src="./public/js/axios.min.js"></script> -->
+  <!-- <script src="./public/js/media-devices.js"></script> -->
+  <script src="./public/js/socket.io.min.js"></script>
+  <script src="./public/js/scan.js"></script>
+</body>
+</html>

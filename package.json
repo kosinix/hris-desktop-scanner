@@ -1,0 +1,24 @@
+{
+  "name": "hris-desktop-scanner",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kosinix/hris-desktop-scanner.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kosinix/hris-desktop-scanner/issues"
+  },
+  "homepage": "https://github.com/kosinix/hris-desktop-scanner#readme",
+  "devDependencies": {
+    "electron": "^23.2.0"
+  }
+}
