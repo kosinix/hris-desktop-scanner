@@ -1,5 +1,6 @@
 const SERVER_URL = 'http://localhost:9094/hybrid-scanner'
 const SCANNER_ID = '64f02eca86af2653bc482fbd'
+const SCANNER_UID = '68075082'
 
 const socket = io(SERVER_URL, {
     query: {
@@ -81,6 +82,12 @@ let vApp = new Vue({
         scannerId: SCANNER_ID,
         status: 'offline',
         pending: false,
+
+        loggedIn: false,
+        loginError: '',
+        username: 'hybrid.scanner.1',
+        password: 'adminadmin',
+
         duplicate: false,
         page: 0,
         code: '',
@@ -109,8 +116,35 @@ let vApp = new Vue({
     },
     mounted: function () {
         let me = this;
+        me.pending = true
+        fetch(`http://localhost:9094/api/app/jwt/decode`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'Authorization': localStorage.getItem('jwtX')
+            }
+        }).then(async function (response) {
+            if (response.ok) {
+                return response.json();
+            }
+            throw new Error(await response.text())
 
-        document.getElementById("code").focus();
+        }).then(function (responseJson) {
+            // console.log(responseJson)
+            me.pending = false
+            me.loggedIn = true
+        }).catch(async function (error) {
+            // console.error(error)
+            // alert(error)
+            me.loggedIn = false
+            // me.loginError = error
+
+        }).then(function () {
+            me.pending = false
+        });
+
+        document.getElementById("code")?.focus();
 
         // Voices
         let voiceChecker = setInterval(function () {
@@ -200,7 +234,7 @@ let vApp = new Vue({
                     // if (!scans) {
                     //     scans = '[]'
                     // }
-                    
+
                     console.log(moment().format('YYYY-MM-DD h:mmA'), ': Scanner ' + args.scannerName + ' is sending scans to the server...')
                     // socket.timeout(10000).emitWithAck('scansfromclient', {
                     //     scannerId: me.scannerId,
@@ -216,7 +250,7 @@ let vApp = new Vue({
                         date1.startOf('day').unix(),
                         date2.endOf('day').unix(),
                     ).toArray().then((scans) => {
-                        if(scans){
+                        if (scans) {
                             // console.log(scans)
                             callback({
                                 scannerId: me.scannerId,
@@ -229,7 +263,7 @@ let vApp = new Vue({
                         callback(err.message)
                         console.error(err)
                     })
-                    
+
                 }
             } catch (err) {
                 callback(err.message)
@@ -241,7 +275,7 @@ let vApp = new Vue({
         // Test vars
         me.code = '0534747031'
 
-        let key = '2023-09-01'
+        let key = '2024-02-01'
         let attendances = getAttendancesByDate(key)
         let attendance = attendances.find(a => a.uid === me.code)
         if (!attendance) {
@@ -265,6 +299,38 @@ let vApp = new Vue({
         }
     },
     methods: {
+        logMeIn: function(){
+            var me = this;
+            // console.log('aaa')
+            fetch(`http://localhost:9094/api2/login`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    username: me.username,
+                    password: me.password,
+                }),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            }).then(async function (response) {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error(await response.text())
+
+            }).then(function (responseJson) {
+                let data = responseJson
+                console.log(data)
+                me.loggedIn = true
+                localStorage.setItem('jwtX', data.jwt)
+            }).catch(async function (error) {
+                // alert(error)
+                me.loginError = error
+
+            }).then(function () {
+                me.pending = false
+            });
+        },
         reset: function () {
             let me = this;
 
@@ -310,9 +376,9 @@ let vApp = new Vue({
             }, 1000)
         },
         focus: function () {
-            setTimeout(function () {
-                document.getElementById("code").focus();
-            }, 10);
+            // setTimeout(function () {
+            //     document.getElementById("code")?.focus();
+            // }, 10);
         },
         onSubmit: function () {
             const me = this;
@@ -401,14 +467,14 @@ let vApp = new Vue({
                 }
                 attendance.logs.push(momentNow.format('hh:mmA'))
 
-                
+
                 let newItem = {
                     uid: me.code,
                     unix: momentNow.unix(),
                     date: momentNow.format('YYYY-MM-DD'),
                     time: momentNow.format('hh:mmA')
                 }
-           
+
                 db.logs.add(newItem).then(() => {
                     console.log('indexedDb added', newItem)
                 }).catch(err => {
@@ -551,3 +617,11 @@ let vApp = new Vue({
         }
     }
 });
+
+// This is electron renderer.js
+window.electronAPI.onDataFromMain((_event, value) => {
+    if(value==='logout'){
+        localStorage.removeItem('jwtX')
+        vApp.loggedIn = false
+    }
+})

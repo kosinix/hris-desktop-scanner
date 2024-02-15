@@ -35,7 +35,6 @@ const createWindow = () => {
             preload: path.join(__dirname, 'preload.js')
         }
     })
-
     //////////////////
     const menu = Menu.buildFromTemplate([
         {
@@ -45,6 +44,12 @@ const createWindow = () => {
                     label: 'Toggle Full Screen',
                     click: async () => {
                         mainWindow.setFullScreen(!mainWindow.isFullScreen());
+                    }
+                },
+                {
+                    label: 'Logout',
+                    click: async () => {
+                        mainWindow.webContents.send('mis:onDataFromMain', 'logout')
                     }
                 },
                 IS_MAC ? { role: 'close' } : { role: 'quit' },
@@ -68,6 +73,9 @@ const createWindow = () => {
 
     // and load the index.html of the app.
     mainWindow.loadFile('index.html')
+
+    // Fullscreen
+    mainWindow.setFullScreen(!mainWindow.isFullScreen());
 
     // Open the DevTools.
     mainWindow.webContents.openDevTools()
