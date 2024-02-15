@@ -15,7 +15,23 @@
   <body class="body-scanner">
     <div class="container-fluid">
       <div class="row">
-        <div id="vApp" v-cloak v-bind:data-pending="pending" class="col-12 scanner-kiosk">
+        <div id="vApp" v-cloak v-bind:data-pending="pending" class="pending-screen col-12 scanner-kiosk">
+            <div id="loader-pixels" class="loader-pixels">
+                <div class="pixels">
+                    <div class="pixel"></div>
+                    <div class="pixel"></div>
+                    <div class="pixel"></div>
+                    <div class="pixel"></div>
+                    <div class="pixel"></div>
+                    <div class="pixel"></div>
+                    <div class="pixel"></div>
+                    <div class="pixel"></div>
+                    <div class="pixel"></div>
+                </div>
+                <div class="text text-center">
+                    Processing
+                </div>
+            </div>
             <div v-if="loggedIn"  v-on:click.prevent="focus">
                 <div v-if="!duplicate" class="form-row pt-md-5 pt-3">
                     <div class="col-md-2 col-xlx-4"></div>
@@ -128,7 +144,7 @@
                                 <label for="password">Password</label>
                                 <input v-model="password" id="password" type="password" name="password" class="form-control">
                             </div>
-                            <button class="btn btn-sm btn-primary">Login</button>
+                            <button :disabled="(status==='offline')" class="btn btn-sm btn-primary">Login</button>
                         </form>
                     </div>
                     <div class="col-4"></div>

@@ -74,7 +74,7 @@ div[data-pending="true"]:before {
     z-index: 1001;
 }
 div[data-pending="true"]:after {
-    content: "Processing... Please wait...";
+    content: "";
     position: fixed;
     left: 0;
     right: 0;
@@ -1544,18 +1544,57 @@ button.btn-eye[data-state="text"] svg:nth-child(2) {
     color: #000;
 }
 
-/* .table-scanner-logs {
-    border-left: 1px solid #ccc;
-    border-top: 1px solid #ccc;
+/* Loading screen 2 */
+div.pending-screen .loader-pixels {
+    font-size: 15px;
+    z-index: 1002;
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    display: none;
 }
-.table-scanner-logs th {
-    border-right: 1px solid #ccc;
-    border-bottom: 1px solid #ccc;
+div.pending-screen[data-pending="true"] .loader-pixels {
+    display: block;
 }
-.table-scanner-logs td {
-    border-right: 1px solid #ccc;
-    border-bottom: 1px solid #ccc;
-} */
+.loader-pixels .pixels {
+    width: 60px;
+    height: 60px;
+    position: relative;
+    margin: 0 auto;
+}
+.loader-pixels .pixel {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+}
+.loader-pixels .pixel:nth-child(1){
+    left: 0px; top: 0px; background: #fe718d;
+}
+.loader-pixels .pixel:nth-child(2){
+    left: 20px; top: 0px; background: #f47e60;
+}
+.loader-pixels .pixel:nth-child(3){
+    left: 40px; top: 0px; background: #f8b26a;
+}
+.loader-pixels .pixel:nth-child(4){
+    left: 0px; top: 20px; background: #abbd81;
+}
+.loader-pixels .pixel:nth-child(5){
+    left: 20px; top: 20px; background: #5d945d;
+}
+.loader-pixels .pixel:nth-child(6){
+    left: 40px; top: 20px; background: #6a63b6;
+}
+.loader-pixels .pixel:nth-child(7){
+    left: 0px; top: 40px; background: #7c7c7c;
+}
+.loader-pixels .pixel:nth-child(8){
+    left: 20px; top: 40px; background: #fd4634;
+}
+.loader-pixels .pixel:nth-child(9){
+    left: 40px; top: 40px; background: #76e8f3;
+}
 
 /* Breakpoints */
 /* ≥1200px Extra large */

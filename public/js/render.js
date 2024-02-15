@@ -60,8 +60,7 @@
 
     let returnTimer = null
     let voices = []
-    let synth = window.speechSynthesis || null;
-    const isNumeric = (n) => {
+    const IS_NUMERIC = (n) => {
         return !isNaN(parseFloat(n)) && isFinite(n);
     }
     const getAttendancesByDate = (key) => {
@@ -75,6 +74,66 @@
         return attendances
     }
 
+    const loadingScreen = () => {
+        anime({
+            targets: '#loader-pixels .pixel',
+            loop: true,
+            scale: .70,
+            direction: 'alternate',
+            delay: anime.stagger(100) // increase delay by 100ms for each elements.
+        });
+        let tl = anime.timeline({
+            easing: 'easeOutCubic',
+            duration: 800,
+            loop: true,
+        });
+        tl.add({
+            targets: '#loader-pixels .text',
+            translateY: 10,
+        })
+        tl.add({
+            targets: '#loader-pixels .text',
+            translateY: 0,
+        })
+    }
+
+    const checkIfAuthenticated = (me) => {
+        fetch(`${SERVER_URL}/api/app/jwt/decode`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'Authorization': localStorage.getItem('jwtX')
+            }
+        }).then(async function (response) {
+            if (response.ok) {
+                return response.json();
+            }
+            throw new Error(await response.text())
+        }).then(function (responseJson) {
+            me.loggedIn = true
+        }).catch(async function (error) {
+            // console.error(error)
+            me.loggedIn = false
+        }).then(function () {
+            me.pending = false
+        });
+    }
+
+    const SPEAKER = window.speechSynthesis || null;
+    const loadVoices = (me) => {
+        // Voices
+        let voiceChecker = setInterval(function () {
+            if (voices.length <= 0) {
+                if (SPEAKER) {
+                    voices = SPEAKER?.getVoices() || []
+                }
+            } else {
+                clearInterval(voiceChecker)
+                me.voicesReady = true;
+            }
+        }, 300)
+    }
     let vApp = new Vue({
         el: '#vApp',
         delimiters: ["${", "}"],
@@ -82,7 +141,7 @@
         data: {
             scannerId: SCANNER_ID,
             status: 'offline',
-            pending: false,
+            pending: true,
 
             loggedIn: false,
             loginError: '',
@@ -116,48 +175,12 @@
 
         },
         mounted: function () {
-            let me = this;
-            me.pending = true
-            fetch(`http://localhost:9094/api/app/jwt/decode`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Authorization': localStorage.getItem('jwtX')
-                }
-            }).then(async function (response) {
-                if (response.ok) {
-                    return response.json();
-                }
-                throw new Error(await response.text())
-
-            }).then(function (responseJson) {
-                // console.log(responseJson)
-                me.pending = false
-                me.loggedIn = true
-            }).catch(async function (error) {
-                // console.error(error)
-                // alert(error)
-                me.loggedIn = false
-                // me.loginError = error
-
-            }).then(function () {
-                me.pending = false
-            });
+            let me = this
+            loadingScreen()
+            checkIfAuthenticated(me)
+            loadVoices(me)
 
             document.getElementById("code")?.focus();
-
-            // Voices
-            let voiceChecker = setInterval(function () {
-                if (synth) {
-                    voices = synth?.getVoices() || []
-                }
-
-                if (voices.length > 0) {
-                    clearInterval(voiceChecker)
-                    me.voicesReady = true;
-                }
-            }, 100)
 
             let startingTime = moment().tz('Asia/Manila').startOf('day');
             let tick = function () {
@@ -300,10 +323,14 @@
             }
         },
         methods: {
+            getJwt: function () {
+                return localStorage.getItem('jwtX')
+            },
             logMeIn: function () {
-                var me = this;
+                let me = this;
+                me.pending = true;
                 // console.log('aaa')
-                fetch(`http://localhost:9094/api2/login`, {
+                fetch(`${SERVER_URL}/api/login`, {
                     method: 'POST',
                     body: JSON.stringify({
                         username: me.username,
@@ -350,13 +377,16 @@
                 try {
                     if (this.voicesReady) {
                         let utterThis = new SpeechSynthesisUtterance(words);
-                        utterThis.voice = voices.find(function (v) {
+                        const ZIRA = voices.find(v => {
                             return v.name.includes('Microsoft Zira')
                         });
+                        if (ZIRA) {
+                            utterThis.voice = ZIRA
+                        }
                         utterThis.pitch = 1;
                         utterThis.rate = 1;
-                        synth.cancel();
-                        synth.speak(utterThis);
+                        SPEAKER.cancel(); // Stop talking
+                        SPEAKER.speak(utterThis);
                     }
                 } catch (err) {
                     console.error(err)
@@ -395,7 +425,7 @@
                         return
                     }
 
-                    if (code.length !== 10 || !isNumeric(code)) {
+                    if (code.length !== 10 || !IS_NUMERIC(code)) {
                         throw new Error('Invalid ID Number.')
                     }
 
